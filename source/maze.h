@@ -1,13 +1,13 @@
 #include "main.h"
 
-#ifndef BODY_H
-#define BODY_H
+#ifndef MAZE_H
+#define MAZE_H
 
 
-class Body {
+class Maze {
 public:
-    Body() {}
-    Body(float x,float y, float l, float r,float t, float b,float z, float cr,float cg,float cb);
+    Maze() {}
+    Maze(float x, float y,float s,GLfloat Mazver[],int a,float l,float r,float t,float b);
     glm::vec3 position;
     float rotation;
     void draw(glm::mat4 VP);
