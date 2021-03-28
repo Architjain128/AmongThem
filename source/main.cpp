@@ -1,23 +1,73 @@
 #include "main.h"
 #include "timer.h"
 #include "ball.h"
-
+#include "maze.h"
+#include "body.h"
+#include "square.h"
+#include "Kruskal.h"
+#include "Transversal.h"
 using namespace std;
 
 GLMatrices Matrices;
 GLuint     programID;
 GLFWwindow *window;
-
+Kruskal myMaze = Kruskal(8);
+Transversal myTran = Transversal();
+int **Map,**TransMap,mazeSize=8;
+int xPlayer,yPlayer,xEnemy,yEnemy,playerType=0;
+int inDoor,outDoor,xNim,yNim,rotBy=1;
+int xNim1,yNim1;
+float xRot=-20,yRot,xNimRot,yNimRot,zNimRot;
+int viewMode = 0;
+bool isTrans,isMorning=true,isEnemyrun=true;
+bool diff = false, spec = false, amb = false;
+float pos[] = {1,10.5,0};
+float ver[] = {0,-1,0};
+float alpha = 4.71;
+int xRoad,yRoad;
+float l=-1.5,b=-4.0,t=1.0,r=4.5;
 /**************************
 * Customizable functions *
 **************************/
-
+// Square mazzze[200];
+Square bg ;
 Ball ball1;
-
+Body player;
+Maze mazze;
 float screen_zoom = 1, screen_center_x = 0, screen_center_y = 0;
 float camera_rotation_angle = 0;
 
 Timer t60(1.0 / 60);
+
+
+
+void placeDoor() {
+        inDoor = myMaze.getDorPos();
+        outDoor = myMaze.getDorPos();
+        Map[0][inDoor] = 0;
+        Map[myMaze.getLength()*2][outDoor] = 0;
+}
+void settingUp(int size){
+        myMaze = Kruskal(size);
+        myMaze.doGenerate();
+        Map = myMaze.getMap();
+        xNim = (rand() % myMaze.getLength())*2+1;    // button x
+        yNim = (rand() % myMaze.getLength())*2+1;    // button y
+        xNim1 = (rand() % myMaze.getLength())*2+1;    // button x
+        yNim1 = (rand() % myMaze.getLength())*2+1;    // button y
+        placeDoor();
+        myTran = Transversal(myMaze.getMap(),mazeSize*2+1,size*2-1,size*2-1,inDoor);
+        myTran.doTransit();
+        TransMap = myTran.getMap();
+        pos[1] = size + 2.5;
+        size % 2 == 0 ? pos[0] = 1 : pos[0] = 0;
+        xPlayer=outDoor; yPlayer=myMaze.getLength()*2;
+        myMaze.print_array();
+        // return;
+        xEnemy=size*2-1; yEnemy=size*2-1;
+}
+
+
 
 /* Render the scene with openGL */
 /* Edit this function according to your assignment */
@@ -51,7 +101,9 @@ void draw() {
     glm::mat4 MVP;  // MVP = Projection * View * Model
 
     // Scene render
-    ball1.draw(VP);
+    mazze.draw(VP);
+    bg.draw(VP);
+    player.draw(VP);
 }
 
 void tick_input(GLFWwindow *window) {
@@ -99,13 +151,59 @@ void initGL(GLFWwindow *window, int width, int height) {
 
 int main(int argc, char **argv) {
     srand(time(0));
-    int width  = 600;
-    int height = 600;
-
+    int width  = 720;
+    int height = 840;
+    settingUp(8);
+    
     window = initGLFW(width, height);
 
     initGL (window, width, height);
 
+    int sqt=0;
+    for (int i = 0; i < myMaze.getSize(); i++) {
+        for (int j = 0; j < myMaze.getSize(); j++) {
+            if (Map[i][j]==1) {
+                    sqt++;
+            }
+        }
+    }
+
+    GLfloat mazevertex[18*sqt];
+    int bbb=0;
+    for (int i = 0; i < myMaze.getSize(); i++) {
+        for (int j = 0; j < myMaze.getSize(); j++) {
+            if (Map[i][j]==1) {
+                mazevertex[bbb*3+0]=i;
+                mazevertex[bbb*3+1]=j;
+                mazevertex[bbb*3+2]=0;
+                bbb++;
+                mazevertex[bbb*3+0]=i;
+                mazevertex[bbb*3+1]=j+1;
+                mazevertex[bbb*3+2]=0;
+                bbb++;
+                mazevertex[bbb*3+0]=i+1;
+                mazevertex[bbb*3+1]=j+1;
+                mazevertex[bbb*3+2]=0;
+                bbb++;
+                mazevertex[bbb*3+0]=i+1;
+                mazevertex[bbb*3+1]=j+1;
+                mazevertex[bbb*3+2]=0;
+                bbb++;
+                mazevertex[bbb*3+0]=i;
+                mazevertex[bbb*3+1]=j;
+                mazevertex[bbb*3+2]=0;
+                bbb++;
+                mazevertex[bbb*3+0]=i+1;
+                mazevertex[bbb*3+1]=j;
+                mazevertex[bbb*3+2]=0;
+                bbb++;
+            }
+        }
+    }
+    bg = Square(l,r,t,b,-0.1,0.6,0.6,0.6);
+    
+    mazze = Maze(0,0,0.1,mazevertex,bbb,l,r,t,b);
+    player = Body(0,0,l,r,t,b,0.1,0,0,1);
     /* Draw in loop */
     while (!glfwWindowShouldClose(window)) {
         // Process timers
