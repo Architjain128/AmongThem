@@ -38,7 +38,7 @@ int boom1=1,xboom1,yboom1;
 int boom2=1,xboom2,yboom2;
 int boom3=1,xboom3,yboom3;
 int vap1=1,xvap1,yvap1;
-
+int desired_points = 150;
 /**************************
 * Customizable functions *
 **************************/
@@ -80,6 +80,14 @@ bool checkpath(int a,int b){
     return false;
     if(Map[a][16-b]==1)
     return false;
+    if(a==16 && b==7){
+        if(Points>=desired_points)
+        return true;
+        else{
+        cout<<"colloectpoint"<<endl;
+        return false;
+        }
+    }
 
     if((a==xboom1 && b==yboom1 && boom1==1))
     {
@@ -100,7 +108,6 @@ bool checkpath(int a,int b){
     {
         vap1=0;
         Points+=150;
-        // Points -=40;
     }
 
     return true;
@@ -218,7 +225,7 @@ void draw() {
         vaporize1.draw(VP);
         imposter.draw(VP);
     }
-    if(Points<150){
+    if(Points<desired_points){
         endd.draw(VP);
     }
 }
