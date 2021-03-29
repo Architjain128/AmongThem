@@ -1,13 +1,13 @@
 #include "main.h"
 
-#ifndef SQUARE_H
-#define SQUARE_H
+#ifndef GATE_H
+#define GATE_H
 
 
-class Square {
+class Gate {
 public:
-    Square() {}
-    Square(float left, float right,float up,float down,float z,float a,float b,float c,color_t color);
+    Gate() {}
+    Gate(float x,float y, float l, float r,float t, float b,float z, float cr,float cg,float cb,int fl);
     glm::vec3 position;
     float rotation;
     void draw(glm::mat4 VP);
