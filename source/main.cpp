@@ -2,7 +2,10 @@
 #include "timer.h"
 #include "ball.h"
 #include "maze.h"
+#include "gate.h"
 #include "body.h"
+#include "boomer.h"
+#include "vaporize.h"
 #include "square.h"
 #include "Kruskal.h"
 #include "Transversal.h"
@@ -14,6 +17,8 @@ GLFWwindow *window;
 Kruskal myMaze = Kruskal(8);
 Transversal myTran = Transversal();
 int Battery = 10;
+int Points = 0;
+int Health = 100;
 int Pause = 0;
 int **Map,**TransMap,mazeSize=8;
 int xPlayer,yPlayer,xEnemy,yEnemy,playerType=0;
@@ -29,27 +34,75 @@ float ver[] = {0,-1,0};
 float alpha = 4.71;
 int xRoad,yRoad;
 float l=-1.5,b=-4.0,t=1.0,r=4.5;
+int boom1=1,xboom1,yboom1;
+int boom2=1,xboom2,yboom2;
+int boom3=1,xboom3,yboom3;
+int vap1=1,xvap1,yvap1;
 
 /**************************
 * Customizable functions *
 **************************/
 // Square mazzze[200];
 Square bg ;
-// Ball ball1;
+Gate endd ;
+Boomer boomerang1;
+Boomer boomerang2;
+Boomer boomerang3;
+Vaporize vaporize1;
 Body player;
+Body imposter;
 Maze mazze;
+vector<pair<int,int>> vv;
 float screen_zoom = 1, screen_center_x = 0, screen_center_y = 0;
 float camera_rotation_angle = 0;
-
 Timer t60(1.0/30);
-
-bool checkpath(int a,int b){
+int cc,dd;
+bool checkobj(int a,int b){
     if(a<0 || b<0)
     return false;
     if(a>mazeSize*2 || b>mazeSize*2)
     return false;
     if(Map[a][16-b]==1)
     return false;
+    for(int i=0;i<vv.size();i++)
+    {
+        if(vv[i].first == a && vv[i].second == b)
+        return false;
+    }
+    return true;
+}
+
+bool checkpath(int a,int b){
+    
+    if(a<0 || b<0)
+    return false;
+    if(a>mazeSize*2 || b>mazeSize*2)
+    return false;
+    if(Map[a][16-b]==1)
+    return false;
+
+    if((a==xboom1 && b==yboom1 && boom1==1))
+    {
+        boom1=0;
+        Points +=100;
+    }
+    if((a==xboom2 && b==yboom2 && boom2==1))
+    {
+        boom2=0;
+        Points +=100;
+    }
+    if((a==xboom3 && b==yboom3 && boom3==1))
+    {
+        boom3=0;
+        Points -=40;
+    }
+    if((a==xvap1 && b==yvap1 && vap1==1))
+    {
+        vap1=0;
+        Points+=150;
+        // Points -=40;
+    }
+
     return true;
 }
 
@@ -63,10 +116,47 @@ void settingUp(int size){
         myMaze = Kruskal(size);
         myMaze.doGenerate();
         Map = myMaze.getMap();
-        xNim = (rand() % myMaze.getLength())*2+1;    // button x
-        yNim = (rand() % myMaze.getLength())*2+1;    // button y
-        xNim1 = (rand() % myMaze.getLength())*2+1;    // button x
-        yNim1 = (rand() % myMaze.getLength())*2+1;    // button y
+        while(1){
+            cc = (rand() % myMaze.getLength())*2+1;    // button x
+            dd = 16-(rand() % myMaze.getLength())*2+1;    // button y
+            if(checkobj(cc,dd)==true){
+                xboom1 = cc;
+                yboom1 = dd;
+                vv.push_back(make_pair(cc,dd));
+                break;
+            }
+        }
+        while(1){
+            cc = (rand() % myMaze.getLength())*2+1;    // button x
+            dd = 16-(rand() % myMaze.getLength())*2+1;    // button y
+            if(checkobj(cc,dd)==true){
+                xboom2 = cc;
+                yboom2 = dd;
+                vv.push_back(make_pair(cc,dd));
+                break;
+            }
+        }
+        while(1){
+            cc = (rand() % myMaze.getLength())*2+1;    // button x
+            dd = 16-(rand() % myMaze.getLength())*2+1;    // button y
+            if(checkobj(cc,dd)==true){
+                xboom3 = cc;
+                yboom3 = dd;
+                vv.push_back(make_pair(cc,dd));
+                break;
+            }
+        }
+        while(1){
+            cc = (rand() % myMaze.getLength())*2+1;    // button x
+            dd = 16-(rand() % myMaze.getLength())*2+1;    // button y
+            if(checkobj(cc,dd)==true){
+                xvap1 = cc;
+                yvap1 = dd;
+                vv.push_back(make_pair(cc,dd));
+                break;
+            }
+        }
+
         placeDoor();
         myTran = Transversal(myMaze.getMap(),mazeSize*2+1,size*2-1,size*2-1,inDoor);
         myTran.doTransit();
@@ -118,6 +208,19 @@ void draw() {
     mazze.draw(VP);
     bg.draw(VP);
     player.draw(VP);
+    if(boom1==1)
+    boomerang1.draw(VP);
+    if(boom2==1)
+    boomerang2.draw(VP);
+    if(boom3==1)
+    boomerang3.draw(VP);
+    if(vap1==1){
+        vaporize1.draw(VP);
+        imposter.draw(VP);
+    }
+    if(Points<150){
+        endd.draw(VP);
+    }
 }
 
 void tick_input(GLFWwindow *window) {
@@ -242,11 +345,18 @@ int main(int argc, char **argv) {
             }
         }
     }
-    bg = Square(l,r,t,b,-0.1,0.6,0.6,0.6);
+    bg = Square(l,r,t,b,-0.1,0.6,0.6,0.6,COLOR_BLACK);
     mazze = Maze(0,0,0.1,mazevertex,bbb,l,r,t,b);
     xPlay = 0;
     yPlay = 7;
     player = Body(xPlay,yPlay,l,r,t,b,0.2,76.0/256.0,64.0/256.0,245.0/256.0);
+    imposter = Body(15,yPlay,l,r,t,b,0.2,253.0/256.0,52.0/256.0,171.0/256.0);
+    boomerang1 = Boomer(xboom1,yboom1,l,r,t,b,0.3,0,0,0,1);
+    boomerang2 = Boomer(xboom2,yboom2,l,r,t,b,0.3,0,0,0,1);
+    boomerang3 = Boomer(xboom3,yboom3,l,r,t,b,0.3,0,0,0,0);
+    vaporize1 = Vaporize(xvap1,yvap1,l,r,t,b,0.3,0,0,0,0);
+    endd = Gate(16,7,l,r,t,b,0.3,0,0,0,0);
+
     /* Draw in loop */
     while (!glfwWindowShouldClose(window)) {
         // Process timers

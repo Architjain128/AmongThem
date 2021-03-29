@@ -1,13 +1,13 @@
 #include "main.h"
 
-#ifndef SQUARE_H
-#define SQUARE_H
+#ifndef VAPORIZE_H
+#define VAPORIZE_H
 
 
-class Square {
+class Vaporize {
 public:
-    Square() {}
-    Square(float left, float right,float up,float down,float z,float a,float b,float c,color_t color);
+    Vaporize() {}
+    Vaporize(float x,float y, float l, float r,float t, float b,float z, float cr,float cg,float cb,int fl);
     glm::vec3 position;
     float rotation;
     void draw(glm::mat4 VP);

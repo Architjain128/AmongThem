@@ -2,7 +2,7 @@
 #include "main.h"
 
 
-Square::Square(float left, float right,float up, float down,float z, float a,float b,float c) {
+Square::Square(float left, float right,float up, float down,float z, float a,float b,float c,color_t color) {
     this->position = glm::vec3(left, up, 0);
     this->rotation = 0;
     speed = 0;
@@ -25,7 +25,7 @@ Square::Square(float left, float right,float up, float down,float z, float a,flo
     };
 
 
-    this->object = create3DObject(GL_TRIANGLES, 2*3, vertex_buffer_data, COLOR_BLACK, GL_FILL);
+    this->object = create3DObject(GL_TRIANGLES, 2*3, vertex_buffer_data, color, GL_FILL);
 }
 
 void Square::draw(glm::mat4 VP) {
