@@ -13,8 +13,11 @@ GLuint     programID;
 GLFWwindow *window;
 Kruskal myMaze = Kruskal(8);
 Transversal myTran = Transversal();
+int Battery = 10;
+int Pause = 0;
 int **Map,**TransMap,mazeSize=8;
 int xPlayer,yPlayer,xEnemy,yEnemy,playerType=0;
+int xPlay,yPlay,changePlay=0;
 int inDoor,outDoor,xNim,yNim,rotBy=1;
 int xNim1,yNim1;
 float xRot=-20,yRot,xNimRot,yNimRot,zNimRot;
@@ -26,20 +29,29 @@ float ver[] = {0,-1,0};
 float alpha = 4.71;
 int xRoad,yRoad;
 float l=-1.5,b=-4.0,t=1.0,r=4.5;
+
 /**************************
 * Customizable functions *
 **************************/
 // Square mazzze[200];
 Square bg ;
-Ball ball1;
+// Ball ball1;
 Body player;
 Maze mazze;
 float screen_zoom = 1, screen_center_x = 0, screen_center_y = 0;
 float camera_rotation_angle = 0;
 
-Timer t60(1.0 / 60);
+Timer t60(1.0/30);
 
-
+bool checkpath(int a,int b){
+    if(a<0 || b<0)
+    return false;
+    if(a>mazeSize*2 || b>mazeSize*2)
+    return false;
+    if(Map[a][16-b]==1)
+    return false;
+    return true;
+}
 
 void placeDoor() {
         inDoor = myMaze.getDorPos();
@@ -61,7 +73,9 @@ void settingUp(int size){
         TransMap = myTran.getMap();
         pos[1] = size + 2.5;
         size % 2 == 0 ? pos[0] = 1 : pos[0] = 0;
-        xPlayer=outDoor; yPlayer=myMaze.getLength()*2;
+        xPlayer=inDoor; 
+        yPlayer=16;
+        
         myMaze.print_array();
         // return;
         xEnemy=size*2-1; yEnemy=size*2-1;
@@ -109,9 +123,37 @@ void draw() {
 void tick_input(GLFWwindow *window) {
     int left  = glfwGetKey(window, GLFW_KEY_LEFT);
     int right = glfwGetKey(window, GLFW_KEY_RIGHT);
+    int up = glfwGetKey(window, GLFW_KEY_UP);
+    int down = glfwGetKey(window, GLFW_KEY_DOWN);
+    int space = glfwGetKey(window, GLFW_KEY_SPACE);
     if (left) {
-        // Do something
+        if(checkpath(xPlay-1,yPlay)){
+            xPlay-=1;
+            changePlay=1;
+        }
     }
+    if (right) {
+        if(checkpath(xPlay+1,yPlay)){
+            xPlay+=1;
+            changePlay=1;
+        }
+    }
+    if (up) {
+        if(checkpath(xPlay,yPlay-1)){
+            yPlay-=1;
+            changePlay=1;
+        }
+    }
+    if (down) {
+        if(checkpath(xPlay,yPlay+1)){
+            yPlay+=1;
+            changePlay=1;
+        }
+    }
+    if(space){
+        cout<<player.position.x<<" "<<player.position.y<<endl;
+    }
+
 }
 
 void tick_elements() {
@@ -125,7 +167,7 @@ void initGL(GLFWwindow *window, int width, int height) {
     /* Objects should be created before any other gl function and shaders */
     // Create the models
 
-    ball1 = Ball(0, 0, COLOR_RED);
+    // ball1 = Ball(0, 0, COLOR_RED);
 
     // Create and compile our GLSL program from the shaders
     programID = LoadShaders("../source/shaders/shader.vert", "../source/shaders/shader.frag");
@@ -201,13 +243,17 @@ int main(int argc, char **argv) {
         }
     }
     bg = Square(l,r,t,b,-0.1,0.6,0.6,0.6);
-    
     mazze = Maze(0,0,0.1,mazevertex,bbb,l,r,t,b);
-    player = Body(0,0,l,r,t,b,0.1,0,0,1);
+    xPlay = 0;
+    yPlay = 7;
+    player = Body(xPlay,yPlay,l,r,t,b,0.2,76.0/256.0,64.0/256.0,245.0/256.0);
     /* Draw in loop */
     while (!glfwWindowShouldClose(window)) {
         // Process timers
-
+        if(changePlay==1){
+            changePlay=0;
+            player = Body(xPlay,yPlay,l,r,t,b,0.2,76.0/256.0,64.0/256.0,245.0/256.0);
+        }
         if (t60.processTick()) {
             // 60 fps
             // OpenGL Draw commands
