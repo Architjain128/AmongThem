@@ -23,6 +23,7 @@ int Pause = 0;
 int **Map,**TransMap,mazeSize=8;
 int xPlayer,yPlayer,xEnemy,yEnemy,playerType=0;
 int xPlay,yPlay,changePlay=0;
+int xPlay2,yPlay2,changePlay2=0;
 int inDoor,outDoor,xNim,yNim,rotBy=1;
 int xNim1,yNim1;
 float xRot=-20,yRot,xNimRot,yNimRot,zNimRot;
@@ -38,7 +39,13 @@ int boom1=1,xboom1,yboom1;
 int boom2=1,xboom2,yboom2;
 int boom3=1,xboom3,yboom3;
 int vap1=1,xvap1,yvap1;
-int desired_points = 150;
+int vap2=1,xvap2,yvap2;
+int desired_points = 300;
+int Map2[17][17]={0};
+int bfsmap[290][17][17];
+int vis[290][17][17];
+int inf = 1000000000;
+
 /**************************
 * Customizable functions *
 **************************/
@@ -49,14 +56,196 @@ Boomer boomerang1;
 Boomer boomerang2;
 Boomer boomerang3;
 Vaporize vaporize1;
+Vaporize vaporize2;
 Body player;
 Body imposter;
 Maze mazze;
 vector<pair<int,int>> vv;
+vector<pair<int,int>> path;
+vector<pair<int,int>> graph[17][17];
 float screen_zoom = 1, screen_center_x = 0, screen_center_y = 0;
 float camera_rotation_angle = 0;
 Timer t60(1.0/30);
+Timer t1(1.0);
+string status="op";
+int Tasks=0;
 int cc,dd;
+
+bool checkk(int a,int b){
+    if(a<0||b<0||a>16||b>16)return false;
+    if(Map2[a][b]==1)return false;
+    return true;
+}
+
+void hipster(){
+    for (int  i = 0; i < 17; i++)
+    {
+        for (int j = 0; j < 17; j++)
+        {
+            if(Map[i][j]==1)
+            Map2[i][16-j]=Map[i][j];
+        }
+    }
+}
+
+void bfs(int id){
+    int a=id/17,b=id%17;
+    bfsmap[id][a][b]=0;
+
+    queue<int> q;
+    q.push(id);
+
+    while (q.empty()!=1)
+    {
+        // cout<<id<<" "<<q.size()<<endl;
+        int i=q.front()/17;
+        int j=q.front()%17;
+        q.pop();
+        // if(q.size()>10) break;
+        if(checkk(i-1,j)&& vis[id][i-1][j]==0){
+            q.push((i-1)*17+j);
+            vis[id][i-1][j]=1;
+            bfsmap[id][i-1][j]=min(bfsmap[id][i-1][j],bfsmap[id][i][j]+1);
+        }
+        if(checkk(i+1,j) && vis[id][i+1][j]==0){
+            q.push((i+1)*17+j);
+            vis[id][i+1][j]=1;
+            bfsmap[id][i+1][j]=min(bfsmap[id][i+1][j],bfsmap[id][i][j]+1);
+        }
+        if(checkk(i,j-1)&& vis[id][i][j-1]==0){
+            q.push((i*17+j-1));
+            vis[id][i][j-1]=1;
+            bfsmap[id][i][j-1]=min(bfsmap[id][i][j-1],bfsmap[id][i][j]+1);
+        }
+        if(checkk(i,j+1) && vis[id][i][j+1]==0){
+            q.push((i*17+j+1));
+            vis[id][i][j+1]=1;
+            bfsmap[id][i][j+1]=min(bfsmap[id][i][j+1],bfsmap[id][i][j]+1);
+        }
+    }
+    
+
+
+}
+
+void BFS(){
+    for (int i = 0; i < 17; i++)
+    {
+        for (int j = 0; j < 17; j++)
+        {
+            if(Map2[i][j]!=1){
+                for (int i1 = 0; i1 < 17; i1++)
+                {
+                    for (int j1 = 0; j1 < 17; j1++)
+                    {
+                        bfsmap[i*17+j][i1][j1]=inf;
+                        vis[i*17+j][i1][j1]=0;
+                    }
+                }
+                bfs(i*17+j);
+            }
+        }
+        cout<<i<<endl;
+    }
+    
+}
+
+
+int heavy_driver(){
+    int a2 = xPlay2;
+    int b2 = yPlay2;
+    int a1 = xPlay;
+    int b1 = yPlay;
+    int z1 = 17*a1+b1;
+    int z2 = 17*a2+b2;
+    int res=0;
+    int dd = bfsmap[z1][a2][b2];
+    if(a2-1>=0){
+        if(dd>bfsmap[z1][a2-1][b2])
+        {
+            dd = bfsmap[z1][a2-1][b2];
+            res = 1;
+        }
+            // cout<<a2-1<<" "<<b2<<" "<<bfsmap[z1][a2-1][b2]<<endl;
+    }
+    if(a2+1<17){
+        if(dd>bfsmap[z1][a2+1][b2]){
+            dd = bfsmap[z1][a2+1][b2];
+            res=2;
+        }
+            // cout<<a2+1<<" "<<b2<<" "<<bfsmap[z1][a2+1][b2]<<endl;
+    }
+    if(b2-1>=0){
+        if(dd>bfsmap[z1][a2][b2-1]){
+            dd=bfsmap[z1][a2][b2-1];
+            res=3;
+        }
+            // cout<<a2<<" "<<b2-1<<" "<<bfsmap[z1][a2][b2-1]<<endl;
+    }
+    if(b2+1<17){
+        if(dd>bfsmap[z1][a2][b2+1]){
+            dd = bfsmap[z1][a2][b2+1];
+            res = 4;
+        }
+            // cout<<a2<<" "<<b2+1<<" "<<bfsmap[z1][a2][b2+1]<<endl;
+    }
+    // cout<<a2<<" "<<b2<<"_ "<<bfsmap[z1][a2][b2]<<endl;
+    
+
+    // if( (a2-1>=0 && a2-1<17) &&  bfsmap[z1][a2-1][b2]< dd)
+    // {
+    //     res=1;
+    //     int dd = bfsmap[z1][a2-1][b2];
+    // }
+    // if( (a2+1>=0 && a2+1<17) && bfsmap[z1][a2+1][b2]< dd)
+    // {
+    //     res=2;
+    //     int dd = bfsmap[z1][a2+1][b2];
+    // }
+    // if( (b2-1>=0 && b2-1<17) &&  bfsmap[z1][a2][b2-1]< dd)
+    // {
+    //     res=3;
+    //     int dd = bfsmap[z1][a2][b2-1];
+    // }
+    // if( (z2+17>=0 && z2+17<289) &&  bfsmap[z1][a2][b2+1]< dd)
+    // {
+    //     res=4;
+    //     int dd = bfsmap[z1][a2][b2+1];
+    // }
+    // cout<<res<<" "<<bfsmap[z1][a2][b2]<<" "<<a2<<" "<<b2<<endl;
+    return res;
+}
+
+bool checky(int a,int b){
+    if(a<0||b<0)return false;
+    if(a>16||b<16)return false;
+    return true;
+}
+
+void move_imposter(int x,int y,int parx,int pary){
+
+    // path.push_back(make_pair(x,y));
+
+    // if(checkpathimposter(x-1,y) && (x-1!=parx && y!=pary)){
+    //     move_imposter(x-1,y,x,y);
+    //     vis[x-1][y]=1;
+    // }
+    // if(checkpathimposter(x+1,y) && (x+1!=parx && y!=pary)){
+    //     move_imposter(x+1,y,x,y);
+    //     vis[x+1][y]=1;
+    // }
+    // if(checkpathimposter(x,y-1) && (x!=parx && y-1!=pary)){
+    //     move_imposter(x,y-1,x,y);
+    //     vis[x][y-1]=1;
+    // }
+    // if(checkpathimposter(x,y+1) && (x!=parx && y+1!=pary)){
+    //     move_imposter(x,y+1,x,y);
+    //     vis[x][y+1]=1;
+    // }
+    // vis[parx][pary]=1;
+    // return;
+}
+
 bool checkobj(int a,int b){
     if(a<0 || b<0)
     return false;
@@ -89,25 +278,39 @@ bool checkpath(int a,int b){
         }
     }
 
-    if((a==xboom1 && b==yboom1 && boom1==1))
+    if((a==xboom1 && b==yboom1 && boom1==1 && vap2==0))
     {
         boom1=0;
         Points +=100;
     }
-    if((a==xboom2 && b==yboom2 && boom2==1))
+    if((a==xboom2 && b==yboom2 && boom2==1 && vap2==0))
     {
         boom2=0;
         Points +=100;
     }
-    if((a==xboom3 && b==yboom3 && boom3==1))
+    if((a==xboom3 && b==yboom3 && boom3==1 && vap2==0))
     {
         boom3=0;
-        Points -=40;
+        Points -=100;
     }
     if((a==xvap1 && b==yvap1 && vap1==1))
     {
         vap1=0;
+        Tasks++;
         Points+=150;
+    }
+    if((a==xvap2 && b==yvap2 && vap2==1))
+    {
+        vap2=0;
+        Tasks++;
+        Points+=150;
+    }
+    if((xPlay==xPlay2 && yPlay==yPlay2 && vap1==1))
+    {
+        status="GAME OVER";
+    }
+    if(xPlay==15 && yPlay==7 && Tasks>=2 && Points>=desired_points){
+        status="YOU WON";
     }
 
     return true;
@@ -159,6 +362,16 @@ void settingUp(int size){
             if(checkobj(cc,dd)==true){
                 xvap1 = cc;
                 yvap1 = dd;
+                vv.push_back(make_pair(cc,dd));
+                break;
+            }
+        }
+        while(1){
+            cc = (rand() % myMaze.getLength())*2+1;    // button x
+            dd = 16-(rand() % myMaze.getLength())*2+1;    // button y
+            if(checkobj(cc,dd)==true){
+                xvap2 = cc;
+                yvap2 = dd;
                 vv.push_back(make_pair(cc,dd));
                 break;
             }
@@ -215,15 +428,21 @@ void draw() {
     mazze.draw(VP);
     bg.draw(VP);
     player.draw(VP);
-    if(boom1==1)
-    boomerang1.draw(VP);
-    if(boom2==1)
-    boomerang2.draw(VP);
-    if(boom3==1)
-    boomerang3.draw(VP);
+    if(vap2==0){
+        if(boom1==1)
+        boomerang1.draw(VP);
+        if(boom2==1)
+        boomerang2.draw(VP);
+        if(boom3==1)
+        boomerang3.draw(VP);
+    }
     if(vap1==1){
         vaporize1.draw(VP);
         imposter.draw(VP);
+    }
+    if(vap2==1){
+        vaporize2.draw(VP);
+        // imposter.draw(VP);
     }
     if(Points<desired_points){
         endd.draw(VP);
@@ -236,6 +455,7 @@ void tick_input(GLFWwindow *window) {
     int up = glfwGetKey(window, GLFW_KEY_UP);
     int down = glfwGetKey(window, GLFW_KEY_DOWN);
     int space = glfwGetKey(window, GLFW_KEY_SPACE);
+    int Q = glfwGetKey(window,GLFW_KEY_Q);
     if (left) {
         if(checkpath(xPlay-1,yPlay)){
             xPlay-=1;
@@ -262,6 +482,9 @@ void tick_input(GLFWwindow *window) {
     }
     if(space){
         cout<<player.position.x<<" "<<player.position.y<<endl;
+    }
+    if(Q){
+        glfwSetWindowShouldClose(window, true);
     }
 
 }
@@ -319,6 +542,8 @@ int main(int argc, char **argv) {
             }
         }
     }
+    hipster();
+    BFS();
 
     GLfloat mazevertex[18*sqt];
     int bbb=0;
@@ -356,13 +581,42 @@ int main(int argc, char **argv) {
     mazze = Maze(0,0,0.1,mazevertex,bbb,l,r,t,b);
     xPlay = 0;
     yPlay = 7;
+    xPlay2 = 15;
+    yPlay2 = 7;
+
+
+    // move_imposter(15,7,16,7);
+    // cout<<">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"<<endl;
+    // for (int i = 0; i < path.size(); i++)
+    // {
+    //     cout<<path[i].first<<" "<<path[i].second<<endl;
+    // }
+    // cout<<">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"<<endl;
+    
     player = Body(xPlay,yPlay,l,r,t,b,0.2,76.0/256.0,64.0/256.0,245.0/256.0);
-    imposter = Body(15,yPlay,l,r,t,b,0.2,253.0/256.0,52.0/256.0,171.0/256.0);
+    imposter = Body(xPlay2,yPlay2,l,r,t,b,0.2,253.0/256.0,52.0/256.0,171.0/256.0);
     boomerang1 = Boomer(xboom1,yboom1,l,r,t,b,0.3,0,0,0,1);
     boomerang2 = Boomer(xboom2,yboom2,l,r,t,b,0.3,0,0,0,1);
     boomerang3 = Boomer(xboom3,yboom3,l,r,t,b,0.3,0,0,0,0);
-    vaporize1 = Vaporize(xvap1,yvap1,l,r,t,b,0.3,0,0,0,0);
+    vaporize1 = Vaporize(xvap1,yvap1,l,r,t,b,0.3,0,0,0,1);
+    vaporize2 = Vaporize(xvap2,yvap2,l,r,t,b,0.3,0,0,0,2);
     endd = Gate(16,7,l,r,t,b,0.3,0,0,0,0);
+    for (int  i = 0; i < 17; i++)
+    {
+        // cout<<path[i].first<<" "<<path[i].second<<endl;
+        for (int j = 0; j < 17; j++)
+        // {
+            cout<<bfsmap[7][i][j]<<" ";
+        
+        //     // cout<<"("<<i<<","<<j<<")  ->  ";
+        //     // for (int k = 0; k < graph[i][j].size(); k++)
+        //     // {
+        //     //     cout<<"["<<graph[i][j][k].first<<","<<graph[i][j][k].second<<"] ";
+        //     // }
+            
+            cout<<endl;
+        // }
+    }
 
     /* Draw in loop */
     while (!glfwWindowShouldClose(window)) {
@@ -371,10 +625,34 @@ int main(int argc, char **argv) {
             changePlay=0;
             player = Body(xPlay,yPlay,l,r,t,b,0.2,76.0/256.0,64.0/256.0,245.0/256.0);
         }
+
+        if(changePlay2==0){
+        
+            int a=heavy_driver();
+            // int a=3;
+            cout<<a<<endl;
+            if(a==1)xPlay2-=1;
+            if(a==2)xPlay2+=1;
+            if(a==3)yPlay2-=1;
+            if(a==4)yPlay2+=1;
+            changePlay2=1;
+        }
+
+        if(t1.processTick())
+        {
+            if(changePlay2==1){
+                changePlay2=0;
+                imposter = Body(xPlay2,yPlay2,l,r,t,b,0.2,253.0/256.0,52.0/256.0,171.0/256.0);
+            }
+        }
+
         if (t60.processTick()) {
             // 60 fps
             // OpenGL Draw commands
+            if(status=="op")
             draw();
+            else
+            cout<<"ok";
             // Swap Frame Buffer in double buffering
             glfwSwapBuffers(window);
 
