@@ -45,7 +45,7 @@ int Map2[17][17]={0};
 int bfsmap[290][17][17];
 int vis[290][17][17];
 int inf = 1000000000;
-
+int TOTIME = 60;
 /**************************
 * Customizable functions *
 **************************/
@@ -309,8 +309,11 @@ bool checkpath(int a,int b){
     {
         status="GAME OVER";
     }
-    if(xPlay==15 && yPlay==7 && Tasks>=2 && Points>=desired_points){
+    if(xPlay==16 && yPlay==7 && Tasks>=2 && Points>=desired_points){
         status="YOU WON";
+    }
+    if(TOTIME<0){
+        status="GAME OVER";
     }
 
     return true;
@@ -391,7 +394,14 @@ void settingUp(int size){
         xEnemy=size*2-1; yEnemy=size*2-1;
 }
 
-
+void msg_TO_HUD(){
+    cout<<"Points : "<<Points<<endl;
+    cout<<"Light : ON"<<endl;
+    cout<<"Tasks : "<<Tasks<<"/2"<<endl;
+    cout<<"Time Remaining : "<< TOTIME<<endl;
+    if(status!="op")
+    cout<<status<<endl<<endl;
+}
 
 /* Render the scene with openGL */
 /* Edit this function according to your assignment */
@@ -427,6 +437,8 @@ void draw() {
     // Scene render
     mazze.draw(VP);
     bg.draw(VP);
+
+    if(status=="op"){
     player.draw(VP);
     if(vap2==0){
         if(boom1==1)
@@ -446,6 +458,7 @@ void draw() {
     }
     if(Points<desired_points){
         endd.draw(VP);
+    }
     }
 }
 
@@ -593,8 +606,8 @@ int main(int argc, char **argv) {
     // }
     // cout<<">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"<<endl;
     
-    player = Body(xPlay,yPlay,l,r,t,b,0.2,76.0/256.0,64.0/256.0,245.0/256.0);
-    imposter = Body(xPlay2,yPlay2,l,r,t,b,0.2,253.0/256.0,52.0/256.0,171.0/256.0);
+    player = Body(xPlay,yPlay,l,r,t,b,0.2,1.0,1,1);
+    imposter = Body(xPlay2,yPlay2,l,r,t,b,0.2,0,0,0);
     boomerang1 = Boomer(xboom1,yboom1,l,r,t,b,0.3,0,0,0,1);
     boomerang2 = Boomer(xboom2,yboom2,l,r,t,b,0.3,0,0,0,1);
     boomerang3 = Boomer(xboom3,yboom3,l,r,t,b,0.3,0,0,0,0);
@@ -623,7 +636,7 @@ int main(int argc, char **argv) {
         // Process timers
         if(changePlay==1){
             changePlay=0;
-            player = Body(xPlay,yPlay,l,r,t,b,0.2,76.0/256.0,64.0/256.0,245.0/256.0);
+            player = Body(xPlay,yPlay,l,r,t,b,0.2,1.0,1,1);
         }
 
         if(changePlay2==0){
@@ -642,17 +655,21 @@ int main(int argc, char **argv) {
         {
             if(changePlay2==1){
                 changePlay2=0;
-                imposter = Body(xPlay2,yPlay2,l,r,t,b,0.2,253.0/256.0,52.0/256.0,171.0/256.0);
+                imposter = Body(xPlay2,yPlay2,l,r,t,b,0.2,0,0,0);
             }
+
+            if(status=="op")
+            TOTIME-=1;
         }
 
         if (t60.processTick()) {
             // 60 fps
             // OpenGL Draw commands
-            if(status=="op")
+            // if(status=="op")
             draw();
-            else
-            cout<<"ok";
+            msg_TO_HUD();
+            // else
+            
             // Swap Frame Buffer in double buffering
             glfwSwapBuffers(window);
 
