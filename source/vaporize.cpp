@@ -32,6 +32,7 @@ static const GLfloat vertex[] = {
 
 
     GLfloat vertex_buffer_data[36];
+    GLfloat color_buffer_data[36];
 
     float zza=x;
     float zzb=-y;
@@ -45,7 +46,26 @@ static const GLfloat vertex[] = {
         else if(i%3==2)
         vertex_buffer_data[i]= 0.3;
     }
-    static const GLfloat color_buffer_data[] = {
+    static const GLfloat color_buffer_data1[] = {
+        
+        0,0,1,
+        0,0,1,
+        0,0,1,
+        
+        0,0,1,
+        0,0,1,
+        0,0,1,
+        
+        150.0/256.0,111.0/256.0,51.0/256.0,
+        150.0/256.0,111.0/256.0,51.0/256.0,
+        150.0/256.0,111.0/256.0,51.0/256.0,
+
+        150.0/256.0,111.0/256.0,51.0/256.0,
+        150.0/256.0,111.0/256.0,51.0/256.0,
+        150.0/256.0,111.0/256.0,51.0/256.0,
+
+    };
+    static const GLfloat color_buffer_data2[] = {
         
         255.0/256.0,37.0/256.0,0.0/256.0,
         255.0/256.0,37.0/256.0,0.0/256.0,
@@ -64,6 +84,13 @@ static const GLfloat vertex[] = {
         150.0/256.0,111.0/256.0,51.0/256.0,
 
     };
+    for(int i=0;i<36;i++){
+        if(fl==2)
+        color_buffer_data[i]= color_buffer_data1[i];
+
+        else if(fl==1)
+        color_buffer_data[i]= color_buffer_data2[i];
+    }
  
     // std::cout<<color_buffer_data[5]<<std::endl;
     this->object = create3DObject(GL_TRIANGLES, 4*3, vertex_buffer_data, color_buffer_data, GL_FILL);
