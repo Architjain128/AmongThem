@@ -7,7 +7,7 @@ A 2D game in c++ using openGL inspired by amongus
     > cd build
     > cmake ..
     > make
-    > ./Hello-World
+    > ./AmongThem
 ```
 ## Features
 + Random maze genreation
