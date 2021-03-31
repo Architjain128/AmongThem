@@ -4,6 +4,7 @@
 #include "maze.h"
 #include "gate.h"
 #include "body.h"
+#include "board.h"
 #include "boomer.h"
 #include "vaporize.h"
 #include "square.h"
@@ -46,12 +47,15 @@ int bfsmap[290][17][17];
 int vis[290][17][17];
 int inf = 1000000000;
 int TOTIME = 60;
+float hx=0,hy=0,hz=1.0;
+int mmm=1;
 /**************************
 * Customizable functions *
 **************************/
 // Square mazzze[200];
 Square bg ;
 Gate endd ;
+Gate endd1 ;
 Boomer boomerang1;
 Boomer boomerang2;
 Boomer boomerang3;
@@ -60,16 +64,30 @@ Vaporize vaporize2;
 Body player;
 Body imposter;
 Maze mazze;
+Board win;
+Board loss;
 vector<pair<int,int>> vv;
 vector<pair<int,int>> path;
 vector<pair<int,int>> graph[17][17];
 float screen_zoom = 1, screen_center_x = 0, screen_center_y = 0;
 float camera_rotation_angle = 0;
-Timer t60(1.0/30);
+Timer t60(1.0/20);
 Timer t1(1.0);
 string status="op";
 int Tasks=0;
 int cc,dd;
+
+// void glutBitmapCharacter()
+// glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18,*c);
+
+// void displayText(float x, float y, float z, char *string) {
+// 	glColor3f(255.0/255.0, 37.0/255.0, 0);
+//     cout<<"prpripri"<<endl;
+//     glRasterPos3f(x, y, z);
+// 	for (char* c = string; *c != '\0'; c++) {
+// 		glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_10, *c);  // Updates the position
+// 	}
+// }
 
 bool checkk(int a,int b){
     if(a<0||b<0||a>16||b>16)return false;
@@ -145,11 +163,10 @@ void BFS(){
                 bfs(i*17+j);
             }
         }
-        cout<<i<<endl;
+        // cout<<i<<endl;
     }
     
 }
-
 
 int heavy_driver(){
     int a2 = xPlay2;
@@ -222,30 +239,6 @@ bool checky(int a,int b){
     return true;
 }
 
-void move_imposter(int x,int y,int parx,int pary){
-
-    // path.push_back(make_pair(x,y));
-
-    // if(checkpathimposter(x-1,y) && (x-1!=parx && y!=pary)){
-    //     move_imposter(x-1,y,x,y);
-    //     vis[x-1][y]=1;
-    // }
-    // if(checkpathimposter(x+1,y) && (x+1!=parx && y!=pary)){
-    //     move_imposter(x+1,y,x,y);
-    //     vis[x+1][y]=1;
-    // }
-    // if(checkpathimposter(x,y-1) && (x!=parx && y-1!=pary)){
-    //     move_imposter(x,y-1,x,y);
-    //     vis[x][y-1]=1;
-    // }
-    // if(checkpathimposter(x,y+1) && (x!=parx && y+1!=pary)){
-    //     move_imposter(x,y+1,x,y);
-    //     vis[x][y+1]=1;
-    // }
-    // vis[parx][pary]=1;
-    // return;
-}
-
 bool checkobj(int a,int b){
     if(a<0 || b<0)
     return false;
@@ -273,7 +266,7 @@ bool checkpath(int a,int b){
         if(Points>=desired_points)
         return true;
         else{
-        cout<<"colloectpoint"<<endl;
+        // cout<<"colloectpoint"<<endl;
         return false;
         }
     }
@@ -389,18 +382,27 @@ void settingUp(int size){
         xPlayer=inDoor; 
         yPlayer=16;
         
-        myMaze.print_array();
-        // return;
+        // myMaze.print_array();
+        // // return;
         xEnemy=size*2-1; yEnemy=size*2-1;
 }
 
 void msg_TO_HUD(){
+    char buffer[20];
+    sprintf(buffer,"okay");
+    // displayText(hx,hy,hz,buffer);
+    // displayText(hx+5.0,hy,hz,buffer);
+    // displayText(hx,hy+5.0,hz,buffer);
+    // displayText(hx-5.0,hy,hz,buffer);
+    // displayText(hx,hy-5.0,hz,buffer);
     cout<<"Points : "<<Points<<endl;
     cout<<"Light : ON"<<endl;
     cout<<"Tasks : "<<Tasks<<"/2"<<endl;
     cout<<"Time Remaining : "<< TOTIME<<endl;
-    if(status!="op")
-    cout<<status<<endl<<endl;
+    if(status!="op"){
+    cout<<status<<endl<<endl<<"Press Q to exit"<<endl;
+    mmm=0;
+    }
 }
 
 /* Render the scene with openGL */
@@ -437,6 +439,7 @@ void draw() {
     // Scene render
     mazze.draw(VP);
     bg.draw(VP);
+    endd1.draw(VP);
 
     if(status=="op"){
     player.draw(VP);
@@ -460,6 +463,9 @@ void draw() {
         endd.draw(VP);
     }
     }
+    if(status=="GAME OVER")loss.draw(VP);
+    if(status=="YOU WON")win.draw(VP);
+
 }
 
 void tick_input(GLFWwindow *window) {
@@ -494,11 +500,27 @@ void tick_input(GLFWwindow *window) {
         }
     }
     if(space){
-        cout<<player.position.x<<" "<<player.position.y<<endl;
+        // cout<<player.position.x<<" "<<player.position.y<<endl;
     }
     if(Q){
         glfwSetWindowShouldClose(window, true);
     }
+    // if(glfwGetKey(window, GLFW_KEY_Z)){
+    //     hx+=1.0;
+    //     // cout<<"x+"<<endl;
+    // }
+    // if(glfwGetKey(window, GLFW_KEY_X)){
+    //     hx-=1.0;
+    //     cout<<"x-"<<endl;
+    // }
+    // if(glfwGetKey(window, GLFW_KEY_C)){
+    //     hy+=1.0;
+    //     cout<<"y+"<<endl;
+    // }
+    // if(glfwGetKey(window, GLFW_KEY_V)){
+    //     hy-=1.0;
+    //     cout<<"y-"<<endl;
+    // }
 
 }
 
@@ -542,7 +564,6 @@ int main(int argc, char **argv) {
     int width  = 720;
     int height = 840;
     settingUp(8);
-    
     window = initGLFW(width, height);
 
     initGL (window, width, height);
@@ -592,7 +613,7 @@ int main(int argc, char **argv) {
     }
     bg = Square(l,r,t,b,-0.1,0.6,0.6,0.6,COLOR_BLACK);
     mazze = Maze(0,0,0.1,mazevertex,bbb,l,r,t,b);
-    xPlay = 0;
+    xPlay = 1;
     yPlay = 7;
     xPlay2 = 15;
     yPlay2 = 7;
@@ -614,22 +635,27 @@ int main(int argc, char **argv) {
     vaporize1 = Vaporize(xvap1,yvap1,l,r,t,b,0.3,0,0,0,1);
     vaporize2 = Vaporize(xvap2,yvap2,l,r,t,b,0.3,0,0,0,2);
     endd = Gate(16,7,l,r,t,b,0.3,0,0,0,0);
-    for (int  i = 0; i < 17; i++)
-    {
-        // cout<<path[i].first<<" "<<path[i].second<<endl;
-        for (int j = 0; j < 17; j++)
-        // {
-            cout<<bfsmap[7][i][j]<<" ";
+    endd1 = Gate(0,7,l,r,t,b,0.3,0,0,0,0);
+    win = Board(4,4,l,r,t,b,1.0,0.0,0.0,1.0,0);
+    loss = Board(4,4,l,r,t,b,1.0,0.0,0.0,0.0,1);
+
+
+    // for (int  i = 0; i < 17; i++)
+    // {
+    //     // cout<<path[i].first<<" "<<path[i].second<<endl;
+    //     for (int j = 0; j < 17; j++)
+    //     // {
+    //         cout<<bfsmap[7][i][j]<<" ";
         
-        //     // cout<<"("<<i<<","<<j<<")  ->  ";
-        //     // for (int k = 0; k < graph[i][j].size(); k++)
-        //     // {
-        //     //     cout<<"["<<graph[i][j][k].first<<","<<graph[i][j][k].second<<"] ";
-        //     // }
+    //     //     // cout<<"("<<i<<","<<j<<")  ->  ";
+    //     //     // for (int k = 0; k < graph[i][j].size(); k++)
+    //     //     // {
+    //     //     //     cout<<"["<<graph[i][j][k].first<<","<<graph[i][j][k].second<<"] ";
+    //     //     // }
             
-            cout<<endl;
-        // }
-    }
+    //         cout<<endl;
+    //     // }
+    // }
 
     /* Draw in loop */
     while (!glfwWindowShouldClose(window)) {
@@ -643,7 +669,7 @@ int main(int argc, char **argv) {
         
             int a=heavy_driver();
             // int a=3;
-            cout<<a<<endl;
+            // cout<<a<<endl;
             if(a==1)xPlay2-=1;
             if(a==2)xPlay2+=1;
             if(a==3)yPlay2-=1;
@@ -667,6 +693,7 @@ int main(int argc, char **argv) {
             // OpenGL Draw commands
             // if(status=="op")
             draw();
+            if(mmm==1)
             msg_TO_HUD();
             // else
             
