@@ -262,6 +262,7 @@ bool checkpath(int a,int b){
     return false;
     if(Map[a][16-b]==1)
     return false;
+    if(a==0 && b==7) return false;
     if(a==16 && b==7){
         if(Points>=desired_points)
         return true;
@@ -388,21 +389,22 @@ void settingUp(int size){
 }
 
 void msg_TO_HUD(){
-    char buffer[20];
-    sprintf(buffer,"okay");
-    // displayText(hx,hy,hz,buffer);
-    // displayText(hx+5.0,hy,hz,buffer);
-    // displayText(hx,hy+5.0,hz,buffer);
-    // displayText(hx-5.0,hy,hz,buffer);
-    // displayText(hx,hy-5.0,hz,buffer);
-    cout<<"Points : "<<Points<<endl;
-    cout<<"Light : ON"<<endl;
-    cout<<"Tasks : "<<Tasks<<"/2"<<endl;
-    cout<<"Time Remaining : "<< TOTIME<<endl;
+    
+    cout <<"=================================================="<<endl;
+    cout<<"||\t\tPoints : "<<Points<<"\t\t\t||"<<endl;
+    cout<<"||\t\tLight : ON"<<"\t\t\t||"<<endl;
+    cout<<"||\t\tTasks : "<<Tasks<<"/2"<<"\t\t\t||"<<endl;
+    cout<<"||\t\tTime Remaining : "<< TOTIME<<"\t\t||"<<endl;
+    cout <<"=================================================="<<endl<<endl;
     if(status!="op"){
-    cout<<status<<endl<<endl<<"Press Q to exit"<<endl;
+        if(status=="GAME OVER")
+    cout << "\t\t\033[1;31m"<<status<<"\033[0m\n"<<endl;
+            if(status=="YOU WON")
+    cout << "\t\t\033[1;34m"<<status<<"\033[0m\n"<<endl;
     mmm=0;
+    cout<<"Press Q to exit"<<endl;
     }
+    cout<<endl<<endl;
 }
 
 /* Render the scene with openGL */
