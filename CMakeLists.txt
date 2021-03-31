@@ -50,3 +50,11 @@ endif()
 pkg_check_modules(GLEW REQUIRED glew)
 include_directories(${GLEW_INCLUDE_DIRS})
 target_link_libraries (${PROJECT_NAME} ${GLEW_LIBRARIES})
+
+# GLUT
+pkg_check_modules(GL REQUIRED gl)
+include_directories(${GLUT_INCLUDE_DIRS})
+target_link_libraries (${PROJECT_NAME} ${GLUT_LIBRARIES})
+# set(GLUT_DIR "${LIB_DIR}/glut")
+# target_include_directories(${PROJECT_NAME} PRIVATE "${GLM_DIR}/include")
+
