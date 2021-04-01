@@ -17,13 +17,14 @@ A 2D game in c++ using openGL inspired by amongus
 + Bucket : Water : Adds 100 points
 + Bucket : Lava : Dexreases 100 points
 + exit open on 300+ points
++ Heads on display
++ Lost/Win message
 
 ## Keys
 + arrow keys for movement
 + q for quit window
 
 ## Lacks
-+ HUD : see in terminal
 + Light : Always on
 
 ## Bonus

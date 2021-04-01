@@ -47,7 +47,7 @@ int bfsmap[290][17][17];
 int vis[290][17][17];
 int inf = 1000000000;
 int TOTIME = 60;
-float hx=0,hy=0,hz=1.0;
+float hx=0.0,hy=0.0,hz=1.0;
 int mmm=1;
 /**************************
 * Customizable functions *
@@ -390,8 +390,24 @@ void settingUp(int size){
 
 void msg_TO_HUD(){
     
+
+    char bo[500];
+    if(TOTIME<0)TOTIME=0;
+    sprintf(bo,"==================================================\n||        Points : %4d            ||\n||        Light : ON            ||\n||        Tasks : %d/2            ||\n||        Time Remaining : %2d            ||\n||========================================\n||",Points,Tasks,TOTIME);
+	GLTtext *text1 = gltCreateText();
+	gltSetText(text1, bo);
+    float x=9.25*(hx)/17.0;
+    float y=7.1*(-hy)/17.0;
+
+    gltBeginDraw();
+	gltColor(1.0f, 0.0f, 0.0f, 1.0f);
+	gltDrawText2D(text1,x,y,2.0); // x=0.0, y=0.0, scale=1.0
+	// gltDrawText2DAligned(text1,(GLfloat)( 360),(GLfloat)(420),3.0f,GLT_CENTER, GLT_CENTER);
+
+    gltEndDraw();
+
     cout <<"=================================================="<<endl;
-    cout<<"||\t\tPoints : "<<Points<<"\t\t\t||"<<endl;
+    cout<<"||\t\tPoints : 0000\t\t\t||"<<endl;
     cout<<"||\t\tLight : ON"<<"\t\t\t||"<<endl;
     cout<<"||\t\tTasks : "<<Tasks<<"/2"<<"\t\t\t||"<<endl;
     cout<<"||\t\tTime Remaining : "<< TOTIME<<"\t\t||"<<endl;
@@ -401,12 +417,37 @@ void msg_TO_HUD(){
     cout << "\t\t\033[1;31m"<<status<<"\033[0m\n"<<endl;
             if(status=="YOU WON")
     cout << "\t\t\033[1;34m"<<status<<"\033[0m\n"<<endl;
-    mmm=0;
+    // mmm=0;
     cout<<"Press Q to exit"<<endl;
     }
     cout<<endl<<endl;
 }
-
+void winhud(){
+	GLTtext *text1 = gltCreateText();
+	GLTtext *text2 = gltCreateText();
+	gltSetText(text1,"YOU WIN");
+	gltSetText(text2,"Press [Q] to exit");
+    float x=9.25*(hx)/17.0;
+    float y=7.1*(-hy)/17.0;
+    gltBeginDraw();
+	gltColor(1.0f, 0.0f, 0.0f, 1.0f);
+	gltDrawText2DAligned(text1,(GLfloat)( 360),(GLfloat)(780),5.0f,GLT_CENTER, GLT_CENTER);
+	gltDrawText2DAligned(text2,(GLfloat)( 360),(GLfloat)(810),1.0f,GLT_CENTER, GLT_CENTER);
+    gltEndDraw();
+}
+void losshud(){
+	GLTtext *text1 = gltCreateText();
+	GLTtext *text2 = gltCreateText();
+	gltSetText(text1,"GAME OVER");
+	gltSetText(text2,"Press [Q] to exit");
+    float x=9.25*(hx)/17.0;
+    float y=7.1*(-hy)/17.0;
+    gltBeginDraw();
+	gltColor(1.0f, 0.0f, 0.0f, 1.0f);
+	gltDrawText2DAligned(text1,(GLfloat)( 360),(GLfloat)(780),5.0f,GLT_CENTER, GLT_CENTER);
+	gltDrawText2DAligned(text2,(GLfloat)( 360),(GLfloat)(810),1.0f,GLT_CENTER, GLT_CENTER);
+    gltEndDraw();
+}
 /* Render the scene with openGL */
 /* Edit this function according to your assignment */
 void draw() {
@@ -465,9 +506,14 @@ void draw() {
         endd.draw(VP);
     }
     }
-    if(status=="GAME OVER")loss.draw(VP);
-    if(status=="YOU WON")win.draw(VP);
-
+    if(status=="GAME OVER"){
+        loss.draw(VP);
+        losshud();
+    }
+    if(status=="YOU WON"){
+        win.draw(VP);
+        winhud();
+    }
 }
 
 void tick_input(GLFWwindow *window) {
@@ -502,14 +548,14 @@ void tick_input(GLFWwindow *window) {
         }
     }
     if(space){
-        // cout<<player.position.x<<" "<<player.position.y<<endl;
+        cout<<player.position.x<<" "<<player.position.y<<endl;
     }
     if(Q){
         glfwSetWindowShouldClose(window, true);
     }
     // if(glfwGetKey(window, GLFW_KEY_Z)){
     //     hx+=1.0;
-    //     // cout<<"x+"<<endl;
+    //     cout<<"x+"<<endl;
     // }
     // if(glfwGetKey(window, GLFW_KEY_X)){
     //     hx-=1.0;
@@ -551,6 +597,12 @@ void initGL(GLFWwindow *window, int width, int height) {
     glClearColor (COLOR_BACKGROUND.r / 256.0, COLOR_BACKGROUND.g / 256.0, COLOR_BACKGROUND.b / 256.0, 0.0f); // R, G, B, A
     glClearDepth (1.0f);
 
+	if (!gltInit())
+	{
+		fprintf(stderr, "Failed to initialize glText\n");
+		glfwTerminate();
+	}
+
     glEnable (GL_DEPTH_TEST);
     glDepthFunc (GL_LEQUAL);
 
@@ -567,9 +619,9 @@ int main(int argc, char **argv) {
     int height = 840;
     settingUp(8);
     window = initGLFW(width, height);
-
+    
     initGL (window, width, height);
-
+    
     int sqt=0;
     for (int i = 0; i < myMaze.getSize(); i++) {
         for (int j = 0; j < myMaze.getSize(); j++) {
@@ -580,7 +632,7 @@ int main(int argc, char **argv) {
     }
     hipster();
     BFS();
-
+    
     GLfloat mazevertex[18*sqt];
     int bbb=0;
     for (int i = 0; i < myMaze.getSize(); i++) {
@@ -613,13 +665,13 @@ int main(int argc, char **argv) {
             }
         }
     }
+
     bg = Square(l,r,t,b,-0.1,0.6,0.6,0.6,COLOR_BLACK);
     mazze = Maze(0,0,0.1,mazevertex,bbb,l,r,t,b);
     xPlay = 1;
     yPlay = 7;
     xPlay2 = 15;
     yPlay2 = 7;
-
 
     // move_imposter(15,7,16,7);
     // cout<<">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"<<endl;
@@ -638,26 +690,8 @@ int main(int argc, char **argv) {
     vaporize2 = Vaporize(xvap2,yvap2,l,r,t,b,0.3,0,0,0,2);
     endd = Gate(16,7,l,r,t,b,0.3,0,0,0,0);
     endd1 = Gate(0,7,l,r,t,b,0.3,0,0,0,0);
-    win = Board(4,4,l,r,t,b,1.0,0.0,0.0,1.0,0);
-    loss = Board(4,4,l,r,t,b,1.0,0.0,0.0,0.0,1);
-
-
-    // for (int  i = 0; i < 17; i++)
-    // {
-    //     // cout<<path[i].first<<" "<<path[i].second<<endl;
-    //     for (int j = 0; j < 17; j++)
-    //     // {
-    //         cout<<bfsmap[7][i][j]<<" ";
-        
-    //     //     // cout<<"("<<i<<","<<j<<")  ->  ";
-    //     //     // for (int k = 0; k < graph[i][j].size(); k++)
-    //     //     // {
-    //     //     //     cout<<"["<<graph[i][j][k].first<<","<<graph[i][j][k].second<<"] ";
-    //     //     // }
-            
-    //         cout<<endl;
-    //     // }
-    // }
+    win = Board(4,6,l,r,t,b,1.0,0.0,0.0,1.0,0);
+    loss = Board(4,6,l,r,t,b,1.0,0.0,0.0,0.0,1);
 
     /* Draw in loop */
     while (!glfwWindowShouldClose(window)) {
@@ -686,7 +720,7 @@ int main(int argc, char **argv) {
                 imposter = Body(xPlay2,yPlay2,l,r,t,b,0.2,0,0,0);
             }
 
-            if(status=="op")
+            if(status=="op" )
             TOTIME-=1;
         }
 
@@ -697,6 +731,11 @@ int main(int argc, char **argv) {
             draw();
             if(mmm==1)
             msg_TO_HUD();
+
+            // if(status=="YOU WIN")
+            // {
+            //     winhud();
+            // }
             // else
             
             // Swap Frame Buffer in double buffering

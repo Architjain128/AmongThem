@@ -12,10 +12,14 @@
 #include <GL/glut.h>
 #include <GLFW/glfw3.h>
 
+#define GLT_IMPLEMENTATION
+#include "gltext.h"
+
 #define GLM_FORCE_RADIANS
 #include <glm/glm.hpp>
 #include <glm/gtx/transform.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 struct color_t {
     int r;
